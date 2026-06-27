@@ -1,0 +1,21 @@
+{
+  "name": "crux",
+  "description": "Crux compresses verbose CLI output (git, docker, npm, terraform, kubectl, and 30+ more) to save tokens in Claude Code sessions, preserving every error, diff, and stack trace.",
+  "version": "1.0.0",
+  "author": {
+    "name": "kasumiki",
+    "url": "https://github.com/kasumiki"
+  },
+  "repository": "https://github.com/kasumiki/crux",
+  "license": "Apache-2.0",
+  "keywords": [
+    "token-optimization",
+    "compression",
+    "cost-saving",
+    "cli-output",
+    "claude-code",
+    "git",
+    "docker",
+    "kubernetes"
+  ]
+}

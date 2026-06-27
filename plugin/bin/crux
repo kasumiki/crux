@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+"""Crux CLI wrapper.
+
+Works in three scenarios (tried in order):
+1. Running from the repo (development): resolves to repo_dir/crux/cli.py
+2. Core install at ~/.crux/ (always present after install)
+3. Platform plugin directories (fallback)
+"""
+
+import os
+import sys
+
+
+def _find_src_dir():
+    """Find the directory containing the src/ package."""
+    # First: try the repo (parent of bin/)
+    script_path = os.path.realpath(__file__)
+    repo_dir = os.path.dirname(os.path.dirname(script_path))
+    if os.path.isfile(os.path.join(repo_dir, "crux", "cli.py")):
+        return repo_dir
+
+    # Second: core install at ~/.crux/
+    home = os.path.expanduser("~")
+    if os.name == "nt":
+        appdata = os.environ.get("APPDATA", os.path.join(home, "AppData", "Roaming"))
+        core_dir = os.path.join(appdata, "crux")
+    else:
+        core_dir = os.path.join(home, ".crux")
+
+    if os.path.isfile(os.path.join(core_dir, "crux", "cli.py")):
+        return core_dir
+
+    # Third: platform plugin directories (fallback)
+    if os.name == "nt":
+        cache_base = os.path.join(appdata, "claude", "plugins", "cache",
+                                  "crux-marketplace", "crux")
+        candidates = [
+            os.path.join(appdata, "claude", "plugins", "crux"),
+            os.path.join(appdata, "gemini", "extensions", "crux"),
+        ]
+    else:
+        cache_base = os.path.join(home, ".claude", "plugins", "cache",
+                                  "crux-marketplace", "crux")
+        candidates = [
+            os.path.join(home, ".claude", "plugins", "crux"),
+            os.path.join(home, ".gemini", "extensions", "crux"),
+        ]
+
+    # v2 cache: files are under .../crux/<version>/
+    if os.path.isdir(cache_base):
+        versions = sorted(
+            (d for d in os.listdir(cache_base)
+             if os.path.isdir(os.path.join(cache_base, d))),
+            reverse=True,
+        )
+        for v in versions:
+            vdir = os.path.join(cache_base, v)
+            if os.path.isfile(os.path.join(vdir, "crux", "cli.py")):
+                return vdir
+
+    for candidate in candidates:
+        if os.path.isfile(os.path.join(candidate, "crux", "cli.py")):
+            return candidate
+
+    print("Error: could not find crux installation.", file=sys.stderr)
+    print("Re-run: python3 install.py --target claude", file=sys.stderr)
+    sys.exit(1)
+
+
+src_dir = _find_src_dir()
+sys.path.insert(0, src_dir)
+
+from crux.cli import main  # noqa: E402
+
+main()

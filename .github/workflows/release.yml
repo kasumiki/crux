@@ -1,0 +1,72 @@
+name: Release
+
+# Tag a release to publish it, e.g.:  git tag v1.0.0 && git push origin v1.0.0
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip build
+          pip install -e ".[dev]"
+      - name: Verify (lint, type-check, test)
+        run: |
+          ruff check .
+          ruff format --check .
+          mypy plugin/crux
+          pytest -q
+      - name: Tag must match package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(python -c 'import crux; print(crux.__version__)')"
+          test "$tag" = "$pkg" || { echo "tag v$tag != crux $pkg"; exit 1; }
+      - name: Build sdist and wheel
+        run: python -m build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/crux-cli
+    permissions:
+      id-token: write # trusted publishing (OIDC) — no API token/secret needed
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release and attach artifacts
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*

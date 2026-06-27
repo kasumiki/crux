@@ -1,0 +1,5 @@
+{
+  "name": "crux",
+  "version": "1.0.0",
+  "description": "Compresses verbose tool output to save tokens while preserving critical information"
+}

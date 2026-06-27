@@ -1,0 +1,22 @@
+{
+  "name": "crux-marketplace",
+  "owner": {
+    "name": "kasumiki",
+    "url": "https://github.com/kasumiki"
+  },
+  "metadata": {
+    "description": "Crux: automatic output compression for AI coding assistants"
+  },
+  "plugins": [
+    {
+      "name": "crux",
+      "source": "./plugin",
+      "description": "Compress verbose CLI output to save tokens. 30+ specialized processors for git, docker, npm, terraform, kubectl, helm, ansible, cargo, go, and more.",
+      "version": "1.0.0",
+      "author": {
+        "name": "kasumiki"
+      },
+      "keywords": ["token-optimization", "compression", "cost-saving"]
+    }
+  ]
+}
